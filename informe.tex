@@ -35,7 +35,25 @@ La configuración de túneles GRE (Generic Routing Encapsulation) permite encaps
 
 Creamos un escenario usando 2 routers 2911(colocando en cada uno un module HWIC-2T), 2 switches 2911 y 2 PCs como se observa en la figura 1. Configuraremos la red de la PC0 y la PC1 con IPv6 y la red entre ambos routers con IPv4. El objetivo es lograr hacer que ambas PCs se comuniquen usando IPv6 a través de IPv4.\\
 \subsection{Comandos de configuración}
-Antes de configurar los routers, ejecutamos en ambos switches:\\
+
+Como primer paso configuramos la IPv6 y el default gateway de ambas PCs, como se ve a continuación:\\
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{|c|c|c|}
+        \hline
+        \textbf{Dispositivo} & \textbf{Dirección IPv6} & \textbf{Gateway Predeterminado} \\
+        \hline
+        PC0 & 2001:db8:acad:a::1/64 & 2001:db8:acad:a:: \\
+        \hline
+        PC1 & 2001:db8:acad:c::1/64 & 2001:db8:acad:c:: \\
+        \hline
+    \end{tabular}
+    \caption{Configuración de direcciones IPv6 de PC0 y PC1}
+    \label{tab:ipv6_config}
+\end{table}
+
+Ahora antes de configurar los routers, ejecutamos en ambos switches:\\
 \noindent\\
 Switch(config)\#no spanning-tree vlan 1\\
 Switch(config)\#no cdp run\\\\
@@ -77,10 +95,11 @@ R0(config-if)\#ipv6 address 2001:db8:acad:b::/127\\
 Usamos /127 en el tunnel porque es recomendo por la \textbf{IETF(RFC 6164)} en \textit{enlaces punto a punto} para evitar problemas de enrutamiento y de escaneo.\\
 A continuación asignamos el tipo de encapsulacion que se usará en el tunnel, en el caso de este escenario el tunnel transportará paquetes IPv6 dentro de un paquete IPv4. Además, como origen le asignamos la interface serial del Router 0 y como destino la IPv4 del Router1.\\
 
+\noindent\\
 R0(config-if)\#tunnel mode ipv6ip\\
 R0(config-if)\#tunnel source s0/3/0\\
 R0(config-if)\#tunnel destination 10.0.0.2\\
-R0(config-if)\#no shutdown\\ñ
+R0(config-if)\#no shutdown\\
 
 Ahora utilizando los mismos comandos, configuramos el tunnel en el Router 1, cambiando la destination por la IPv4 del Router 0.\\
 R1(config-if)\#tunnel destination 10.0.0.1\\
@@ -102,10 +121,10 @@ Ahora volvemos a intentar el ping entre PC0 y PC1, y observamos que se realizo c
   \end{figure}
 \FloatBarrier
 \section{Referencias}
-Para más información, ver \cite{ref1}.
-
-\begin{thebibliography}{9}
-    \bibitem{ref1} Autor, \textit{Título del libro o artículo}. Editorial, Año.
-\end{thebibliography}
+Para la elaboración de este laboratorio se utilizó el siguiente material bibliografico.
+\begin{itemize}
+    \item \textbf{Video:} "GRE TUNNEL IPV6 TO IPV6 OVER IPV4 PACKET", Carlos Julio Peñaranda Herrera, 2022, at \url{https://www.youtube.com/watch?v=C7eEzr19aD0}.
+    \item \textbf{Documento PDF:} "Configure IPv6 over IPv4 GRE Tunnel", Documentación de Cisco, 2019, at \url{https://www.cisco.com/c/en/us/td/docs/switches/lan/catalyst9500/software/release/17-9/configuration_guide/ip/b_179_ip_9500_cg/configuring_ipv6_over_ipv4_gre_tunnels.pdf}.
+\end{itemize}
 
 \end{document}
