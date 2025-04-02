@@ -1,1 +1,89 @@
-aaaaa
+\documentclass[a4paper,12pt]{article}
+\usepackage[utf8]{inputenc} % Soporte para caracteres UTF-8
+\usepackage{graphicx} % Para insertar imágenes
+\usepackage{listings} % Para código fuente
+\usepackage{caption} % Para personalizar pies de imagen
+\usepackage{longtable} % Para tablas largas
+\usepackage{hyperref} % Para enlaces
+\usepackage{fancyhdr} % Para encabezados y pies de página
+
+% Configuración de encabezado y pie de página
+\pagestyle{fancy}
+\fancyhf{}
+\rfoot{Texto en el pie de página}
+
+\title{Título del Trabajo}
+\author{Nombre del Autor\\ \texttt{correo@ejemplo.com}}
+\date{Fecha}
+
+\begin{document}
+
+\maketitle
+
+\section{Introducción}
+Texto de introducción.
+
+\section{Configuración del router en IPv6}
+
+\subsection{Comandos de configuración}
+Para configurar un router en IPv6, usamos los siguientes comandos:
+
+\begin{lstlisting}[language=bash]
+Router(config)# ipv6 unicast-routing
+Router(config)# interface g0/0
+Router(config-if)# ipv6 enable
+Router(config-if)# ipv6 address FE80::1 link-local
+Router(config-if)# ipv6 address 2001:db8:acad:1::1/64
+Router(config-if)# no shutdown
+\end{lstlisting}
+
+\subsection{Inserción de imágenes}
+La figura \ref{fig:red_local} muestra un esquema de red.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{imagen.png}
+    \caption{Esquema de la red}
+    \label{fig:red_local}
+\end{figure}
+
+\section{Tablas}
+Las direcciones IPv6 de la red se presentan en la tabla \ref{tab:ipv6_addresses}.
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{|c|c|c|}
+        \hline
+        Dispositivo & Interfaz & Dirección IPv6 \\
+        \hline
+        R0 & G0/0 & 2001:db8:acad:1::1/64 \\
+        PC0 & FastEthernet0 & 2001:db8:acad:1::A/64 \\
+        \hline
+    \end{tabular}
+    \caption{Direcciones IPv6 asignadas}
+    \label{tab:ipv6_addresses}
+\end{table}
+
+\section{Listas}
+\subsection{Lista numerada}
+\begin{enumerate}
+    \item Primer ítem.
+    \item Segundo ítem.
+    \item Tercer ítem.
+\end{enumerate}
+
+\subsection{Lista con viñetas}
+\begin{itemize}
+    \item Primer punto.
+    \item Segundo punto.
+    \item Tercer punto.
+\end{itemize}
+
+\section{Referencias}
+Para más información, ver \cite{ref1}.
+
+\begin{thebibliography}{9}
+    \bibitem{ref1} Autor, \textit{Título del libro o artículo}. Editorial, Año.
+\end{thebibliography}
+
+\end{document}
