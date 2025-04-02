@@ -1,0 +1,2 @@
+Switch(config)#no spanning-tree vlan 1\\
+Switch(config)#no cdp run

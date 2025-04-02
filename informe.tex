@@ -1,84 +1,106 @@
 \documentclass[a4paper,12pt]{article}
-\usepackage[utf8]{inputenc} % Soporte para caracteres UTF-8
-\usepackage{graphicx} % Para insertar imágenes
-\usepackage{listings} % Para código fuente
-\usepackage{caption} % Para personalizar pies de imagen
-\usepackage{longtable} % Para tablas largas
-\usepackage{hyperref} % Para enlaces
-\usepackage{fancyhdr} % Para encabezados y pies de página
+\usepackage[utf8]{inputenc} 
+\usepackage[T1]{fontenc} 
+\usepackage[spanish]{babel} 
+\usepackage{lmodern}             
+\usepackage[hidelinks]{hyperref} 
+\usepackage{graphicx}  
+\usepackage{float}
+\usepackage{bytefield}
+\usepackage{geometry}
+\usepackage{placeins}
+\usepackage{fancyhdr} 
 
+\geometry{left=2.5cm, right=2.5cm, top=3cm, bottom=3cm}
 % Configuración de encabezado y pie de página
 \pagestyle{fancy}
-\fancyhf{}
-\rfoot{Texto en el pie de página}
 
-\title{Título del Trabajo}
-\author{Nombre del Autor\\ \texttt{correo@ejemplo.com}}
-\date{Fecha}
+\title{Configure IPv6 over IPv4 GRE Tunnel}
+\author{Martin Moloeznik y Nicolas Paz Reyes\\ \texttt{martinmoloeznik@gmail.com y rubenpaz2105@gmail.com}}
+\date{Abril 02, 2025}
 
 \begin{document}
 
 \maketitle
 
-\section{Introducción}
-Texto de introducción.
-
+\section{Introduccion}
+La configuración de túneles GRE (Generic Routing Encapsulation) permite encapsular paquetes IPv6 dentro de paquetes IPv4, facilitando la comunicación entre redes IPv6 a través de infraestructuras IPv4 existentes. Esta técnica es especialmente útil durante la transición de IPv4 a IPv6, ya que evita la necesidad de actualizar toda la infraestructura de red.
 \section{Configuración del router en IPv6}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1\textwidth]{imagenes/lab1.png}
+    \caption{Escenario Modelo}
+  \end{figure}
+\FloatBarrier
 
+Creamos un escenario usando 2 routers 2911(colocando en cada uno un module HWIC-2T), 2 switches 2911 y 2 PCs como se observa en la figura 1. Configuraremos la red de la PC0 y la PC1 con IPv6 y la red entre ambos routers con IPv4. El objetivo es lograr hacer que ambas PCs se comuniquen usando IPv6 a través de IPv4.\\
 \subsection{Comandos de configuración}
-Para configurar un router en IPv6, usamos los siguientes comandos:
+Antes de configurar los routers, ejecutamos en ambos switches:\\
+\noindent\\
+Switch(config)\#no spanning-tree vlan 1\\
+Switch(config)\#no cdp run\\\\
+Con el objetivo de evitar usar los protocolos CDP y STP que podrian causar problemas y son innecesarios para el objetivo de este escenario.\\
+\subsection{Configuracion IPv6 de ambos routers}
+Activamos el ruteo IPv6 en ambos \textbf{Routers} en el \textit{modo} global config con:\\
 
-\begin{lstlisting}[language=bash]
-Router(config)# ipv6 unicast-routing
-Router(config)# interface g0/0
-Router(config-if)# ipv6 enable
-Router(config-if)# ipv6 address FE80::1 link-local
-Router(config-if)# ipv6 address 2001:db8:acad:1::1/64
-Router(config-if)# no shutdown
-\end{lstlisting}
+R0(config)\#ipv6 unicast-routing\\
 
-\subsection{Inserción de imágenes}
-La figura \ref{fig:red_local} muestra un esquema de red.
+Ahora vamos a habilitar la interface \textbf{g0/0} en el Router 0 con IPv6 y dos direciones, una LLA(Link-Local Address) \textbf{FE80::1} y otra global o ruteable GUA(Global Unicast Address)\textbf{ 2001:db8:acad:a::/64}.\\
+\noindent\\
+R0(config)\#interface g0/0\\
+R0(config-if)\#ipv6 enable\\
+R0(config-if)\#ipv6 address fe80::1 link-local\\
+R0(config-if)\#ipv6 address 2001:db8:acad:a::/64\\
+R0(config-if)\#no shutdown\\
+
+En el Router 1 utilizamos los mismos comandos, utilizando la LLA \textbf{FE80::2} y la GUA \textbf{2001:db8:acad:c::/64}.\\
+
+\subsection{Configuracion puertos serial con IPv4}
+Ahora configuramos el puerto serial \textbf{s0/3/0} del Router 0 con la IPv4 10.0.0.1/30.\\
+
+\noindent\\
+R0(config-if)\#interface s0/3/0\\
+R0(config-if)\#clock rate 4000000\\
+R0(config-if)\#ip address 10.0.0.1 255.255.255.252\\
+R0(config-if)\#no shutdown\\
+
+En el Router 1 configuramos el puerto serial \textbf{s0/3/0} con la IPv4 10.0.0.2/30 de la misma forma.\\
+
+\section{Configuración GRE Tunnels}
+Comenzamos configurando el tunnel en el Router 0, le asignamos direccion Link-Local y un Global Unicast con los siguientes comandos:\\
+\noindent\\
+R0(config)\#interface tunnel 0\\
+R0(config-if)\#ipv6 enable\\
+R0(config-if)\#ipv6 address fe80::1 link-local\\
+R0(config-if)\#ipv6 address 2001:db8:acad:b::/127\\
+
+Usamos /127 en el tunnel porque es recomendo por la \textbf{IETF(RFC 6164)} en \textit{enlaces punto a punto} para evitar problemas de enrutamiento y de escaneo.\\
+A continuación asignamos el tipo de encapsulacion que se usará en el tunnel, en el caso de este escenario el tunnel transportará paquetes IPv6 dentro de un paquete IPv4. Además, como origen le asignamos la interface serial del Router 0 y como destino la IPv4 del Router1.\\
+
+R0(config-if)\#tunnel mode ipv6ip\\
+R0(config-if)\#tunnel source s0/3/0\\
+R0(config-if)\#tunnel destination 10.0.0.2\\
+R0(config-if)\#no shutdown\\ñ
+
+Ahora utilizando los mismos comandos, configuramos el tunnel en el Router 1, cambiando la destination por la IPv4 del Router 0.\\
+R1(config-if)\#tunnel destination 10.0.0.1\\
+
+\subsection{Ruteo Estatico}
+Ahora podemos comprobar que hay comunicacion entre routers haciendo un ping desde R0 a R1 a traves de la terminal. Sin embargo, si intentamos hacer un ping desde la PC0 a la PC1, el mesaje no llega al Router 1. Es un problema común que dos PC en redes diferentes no puedan hacer ping entre síde manera inmediata. Esto se debe a que los routers no saben cómo llegar a la red remota a menos que configuremos ruteo estatico.\\
+\noindent\\
+R0(config)\#ipv6 route 2001:db8:acad:c::/64 2001:db8:acad:b::1\\
+R1(config)\#ipv6 route 2001:db8:acad:a::/64 2001:db8:acad:b::\\
+
+Mediante estos comandos, le informamos al R0 que envíe los paquetes hacia 2001:db8:acad:c::/64 por el tunel, usando 2001:db8:acad:b::1 como next hop. En el R1 agregamos que para alcanzar 2001:db8:acad:a::/64 debe usar 2001:db8:acad:b:: como next-hop.\\
+
+Ahora volvemos a intentar el ping entre PC0 y PC1, y observamos que se realizo con exito.\\
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.8\textwidth]{imagen.png}
-    \caption{Esquema de la red}
-    \label{fig:red_local}
-\end{figure}
-
-\section{Tablas}
-Las direcciones IPv6 de la red se presentan en la tabla \ref{tab:ipv6_addresses}.
-
-\begin{table}[h]
-    \centering
-    \begin{tabular}{|c|c|c|}
-        \hline
-        Dispositivo & Interfaz & Dirección IPv6 \\
-        \hline
-        R0 & G0/0 & 2001:db8:acad:1::1/64 \\
-        PC0 & FastEthernet0 & 2001:db8:acad:1::A/64 \\
-        \hline
-    \end{tabular}
-    \caption{Direcciones IPv6 asignadas}
-    \label{tab:ipv6_addresses}
-\end{table}
-
-\section{Listas}
-\subsection{Lista numerada}
-\begin{enumerate}
-    \item Primer ítem.
-    \item Segundo ítem.
-    \item Tercer ítem.
-\end{enumerate}
-
-\subsection{Lista con viñetas}
-\begin{itemize}
-    \item Primer punto.
-    \item Segundo punto.
-    \item Tercer punto.
-\end{itemize}
-
+    \includegraphics[width=0.7\textwidth]{imagenes/success.png}
+    \caption{Ping PC0 a PC1}
+  \end{figure}
+\FloatBarrier
 \section{Referencias}
 Para más información, ver \cite{ref1}.
 
