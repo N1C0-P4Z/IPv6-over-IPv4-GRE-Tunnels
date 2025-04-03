@@ -33,7 +33,7 @@
 
 \section{Introduccion}
 La configuración de túneles GRE (Generic Routing Encapsulation) permite encapsular paquetes IPv6 dentro de paquetes IPv4, facilitando la comunicación entre redes IPv6 a través de infraestructuras IPv4 existentes. Esta técnica es especialmente útil durante la transición de IPv4 a IPv6, ya que evita la necesidad de actualizar toda la infraestructura de red.
-\section{Configuración del router en IPv6}
+\section{Configuración Routers y PCs}
 \begin{figure}[h]
     \centering
     \includegraphics[width=1\textwidth]{imagenes/lab1.png}
@@ -64,11 +64,12 @@ Como primer paso configuramos la IPv6 y el default gateway de ambas PCs, como se
 Ahora antes de configurar los routers, ejecutamos en ambos switches:\\
 \noindent\\
 Switch(config)\#no spanning-tree vlan 1\\
-Switch(config)\#no cdp run\\\\
+Switch(config)\#no cdp run\\
+
 Con el objetivo de evitar usar los protocolos CDP y STP que podrian causar problemas y son innecesarios para el objetivo de este escenario.\\
 \subsection{Configuracion IPv6 de ambos routers}
 Activamos el ruteo IPv6 en ambos \textbf{Routers} en el \textit{modo} global config con:\\
-
+\noindent\\
 R0(config)\#ipv6 unicast-routing\\
 
 Ahora vamos a habilitar la interface \textbf{g0/0} en el Router 0 con IPv6 y dos direciones, una LLA(Link-Local Address) \textbf{FE80::1} y otra global o ruteable GUA(Global Unicast Address)\textbf{ 2001:db8:acad:a::/64}.\\
@@ -83,7 +84,6 @@ En el Router 1 utilizamos los mismos comandos, utilizando la LLA \textbf{FE80::2
 
 \subsection{Configuracion puertos serial con IPv4}
 Ahora configuramos el puerto serial \textbf{s0/3/0} del Router 0 con la IPv4 10.0.0.1/30.\\
-
 \noindent\\
 R0(config-if)\#interface s0/3/0\\
 R0(config-if)\#clock rate 4000000\\
